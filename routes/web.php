@@ -14,5 +14,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::group(['middleware' => 'web'], function () {
-    Route::get('', 'HomeController@index')->where('any', '.*');
+    Route::get('/admin', 'HomeController@index')->where('any', '.*');
+});
+
+
+Route::get('/', function () {
+    return view('welcome');
 });

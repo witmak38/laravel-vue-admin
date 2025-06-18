@@ -41,7 +41,7 @@ export default {
       }),
       langOptions: [
         { label: 'English', value: 'en' },
-        { label: '中文', value: 'zh' },
+        { label: 'Русский', value: 'ru' },
       ]
     })
     return {
