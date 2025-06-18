@@ -17,6 +17,7 @@ export default {
     administrator: 'Administrator',
     users: 'Users',
     userProfile: 'User Profile',
+    galleryList: 'Gallery',
   },
   navbar: {
     logOut: 'Log Out',

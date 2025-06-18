@@ -56,6 +56,19 @@ export const constantRoutes = [
       },
     ],
   },
+    {
+        path: '/gallery',
+        component: Layout,
+        redirect: '/gallery/list',
+        children: [
+            {
+                path: 'list',
+                component: () => import('@/views/gallery/List.vue'),
+                name: 'Gallery',
+                meta: {title: 'galleryList', bootstrapIcon: 'images', noCache: true},
+            },
+        ],
+    },
 ]
 
 export const asyncRoutes = [

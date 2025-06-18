@@ -3,6 +3,7 @@
 use App\Models\Acl;
 use Illuminate\Contracts\Routing\Registrar as RouteContract;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\GalleryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +37,9 @@ Route::namespace('Api')->group(function() {
 
         Route::get('roles/{role}/permissions', 'RoleController@permissions')->middleware('permission:' . Acl::PERMISSION_PERMISSION_MANAGE);
         Route::get('requests', 'RequestController@index');
+
+        Route::apiResource('gallery', \App\Http\Controllers\Api\GalleryController::class);
+
     });
 });
 
