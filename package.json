@@ -42,5 +42,8 @@
         "vue-loader": "^17.0.1",
         "vue-router": "^4.2.5",
         "vuedraggable": "^2.24.3"
+    },
+    "dependencies": {
+        "quill": "^2.0.3"
     }
 }
