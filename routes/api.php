@@ -40,6 +40,9 @@ Route::namespace('Api')->group(function() {
 
         Route::apiResource('gallery', \App\Http\Controllers\Api\GalleryController::class);
 
+        Route::apiResource('pages', \App\Http\Controllers\Api\PageController::class);
+
+
     });
 });
 
