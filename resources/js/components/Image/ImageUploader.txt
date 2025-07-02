@@ -1,0 +1,41 @@
+Пример использования в компоненте:
+
+<ImageUploader
+  :model-id="page.id"
+  model-type="App\\Models\\Page"
+  @uploaded="handleUploaded"
+/>
+
+<ImageUploader
+  :model-id="123"  <!-- временный id для тестов -->
+  model-type="App\\Models\\Page"
+  @update="images => console.log(images)"
+/>
+
+<ImageUploader
+  v-if="page.id"
+  :model-id="page.id"
+  model-type="App\\Models\\Page"
+  @update="images => page.images = images"
+/>
+----------
+
+<template>
+  <ImageUploader
+    :modelId="pageId"
+    modelType="App\\Models\\Page"
+    @uploaded="handleImageUploaded"
+  />
+</template>
+
+<script setup>
+import ImageUploader from '@/components/ImageUploader.vue'
+
+const pageId = 123 // или любое другое значение
+
+const handleImageUploaded = (image) => {
+  console.log('Загружено изображение:', image)
+  // Тут можно обновить данные страницы, показать миниатюру, сохранить ID картинки и т.п.
+}
+</script>
+
