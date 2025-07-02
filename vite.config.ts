@@ -26,7 +26,8 @@ export default defineConfig({
         //fix "path" module issue
         'process.platform': null,
         'process.version': null,
-        'import.meta.env': {}
+        'import.meta.env': {},
+        __VUE_PROD_DEVTOOLS__: true, // Разрешить DevTools в production (опционально)
     },
     plugins: [
         vue(),

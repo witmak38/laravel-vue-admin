@@ -6,7 +6,31 @@ class PageResource extends Resource {
         super('pages'); // Laravel route: /api/pages
     }
 
-    // Если понадобится получить одну страницу по slug:
+    // Получить страницу по ID
+    show(id) {
+        return request({
+            url: '/' + this.uri + '/' + id,
+            method: 'get',
+        });
+    }
+
+    getImages(id) {
+        return request({
+            url: '/pages/' + id,
+            method: 'get',
+        });
+    }
+
+    // Обновить страницу по ID
+    update(id, data) {
+        return request({
+            url: '/' + this.uri + '/' + id,
+            method: 'put',
+            data,
+        });
+    }
+
+    // Получить страницу по slug
     bySlug(slug) {
         return request({
             url: '/' + this.uri + '/slug/' + slug,
@@ -14,12 +38,21 @@ class PageResource extends Resource {
         });
     }
 
-    // Пример обновления SEO-мета (дополнительно):
+    // Обновить SEO-мета (дополнительно)
     updateMeta(id, meta) {
         return request({
             url: '/' + this.uri + '/' + id + '/meta',
             method: 'put',
             data: meta,
+        });
+    }
+
+    // Создать черновик
+    createDraft(payload) {
+        return request({
+            url: '/pages/draft',
+            method: 'post',
+            data: payload,
         });
     }
 }

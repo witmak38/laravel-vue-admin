@@ -1,13 +1,11 @@
 <template>
     <div class="app-container scroll-y">
         <div class="filter-container">
-            <!-- Кнопка добавления новой страницы -->
             <el-button class="filter-item" type="primary" :icon="Plus" @click="handleCreate">
                 {{ t('table.add') }}
             </el-button>
         </div>
 
-        <!-- Компонент таблицы со списком страниц -->
         <custom-table
             :table-data="tableData"
             :table-column="tableColumns"
@@ -20,12 +18,10 @@
             @set-params="setParams"
         />
 
-        <!-- Диалог создания новой страницы -->
-        <el-dialog :title="t('page.create')" v-model="dialogFormVisible" width="80%">
+        <el-dialog :title="dialogTitle" v-model="dialogFormVisible" width="80%">
             <div v-loading="creating" class="form-container">
                 <el-form ref="refPageForm" :model="newPage" :rules="rules" label-position="left" label-width="120px">
                     <el-tabs v-model="activeTab" tab-position="left" style="min-height: 400px;">
-                        <!-- Первый таб со всей формой -->
                         <el-tab-pane label="Основные" name="main">
                             <el-container>
                                 <el-header>
@@ -36,24 +32,26 @@
                                 <el-container>
                                     <el-aside width="200px">
                                         <el-form-item label-position="top" :label="t('page.image')">
+
                                             <ImageUploader
-                                                :model-id="123"
-                                                :model-type="`App\\\\Models\\\\Page`"
-                                                @update="images => console.log(images)"
+                                                v-if="page?.id"
+                                                :model-id="page.id"
+                                                :limit="1"
+                                                model-type="App\Models\Page"
+                                                :initial-images="page.images"
+                                                @update="imgs => page.images = imgs"
                                             />
                                         </el-form-item>
                                     </el-aside>
                                     <el-container>
                                         <el-main>
-                                            <el-form-item :label="t('page.title')" prop="title">
-                                                <el-input v-model="newPage.title" />
+                                            <el-form-item :label="t('page.title')" prop="meta_title">
+                                                <el-input v-model="newPage.meta_title" />
                                             </el-form-item>
-                                            <el-form-item :label="t('page.description')" prop="description">
-                                                <el-input v-model="newPage.description" />
+                                            <el-form-item :label="t('page.description')" prop="meta_description">
+                                                <el-input v-model="newPage.meta_description" />
                                             </el-form-item>
-                                            <el-form-item :label="t('page.keywords')" prop="keywords">
-                                                <el-input v-model="newPage.keywords" />
-                                            </el-form-item>
+                                            <!-- keywords, если нужны, добавь сюда -->
                                         </el-main>
                                     </el-container>
                                 </el-container>
@@ -67,18 +65,14 @@
                                     <el-form-item :label="t('page.content')">
                                         <html-editor v-model:content="newPage.content" />
                                     </el-form-item>
-
                                 </el-main>
                             </el-container>
                         </el-tab-pane>
 
                         <el-tab-pane label="Дополнительные поля" name="custom">
-                            <!-- Можно добавить что-то позже -->
                             <el-container>
                                 <el-main>
-                                    <el-form-item label="Дополнительные поля" label-position="top" label-width="150px">
-                                        <KeyValueFields v-model="form.customFields" />
-                                    </el-form-item>
+                                    <!-- Добавь сюда, если нужны дополнительные поля -->
                                 </el-main>
                             </el-container>
                         </el-tab-pane>
@@ -86,11 +80,9 @@
                 </el-form>
 
                 <div class="dialog-footer" style="margin-top: 20px;">
-                    <el-button @click="dialogFormVisible = false">
-                        {{ t('table.cancel') }}
-                    </el-button>
-                    <el-button type="primary" @click="createPage(refPageForm)">
-                        {{ t('table.confirm') }}
+                    <el-button @click="dialogFormVisible = false">{{ t('table.cancel') }}</el-button>
+                    <el-button type="primary" @click="createOrUpdatePage(refPageForm)">
+                        {{ page?.id ? t('table.update') : t('table.confirm') }}
                     </el-button>
                 </div>
             </div>
@@ -106,10 +98,9 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import CustomTable from '@/components/CustomTable.vue'
 import PageResource from '@/api/page'
-import UploadSingle from '@/components/images/UploadSingle.vue' // новый компонент загрузки
-import HtmlEditor from '@/components/Editor/HtmlEditor.vue' // импорт редактора
-import KeyValueFields from '@/components/Editor/KeyValueFields.vue'
-import ImageUploader from "@/components/Image/ImageUploader.vue";
+import HtmlEditor from '@/components/Editor/HtmlEditor.vue'
+import ImageUploader from '@/components/Image/ImageUploader.vue'
+import { debounce } from 'lodash-es'
 
 const activeTab = ref('main')
 
@@ -117,19 +108,9 @@ const { t } = useI18n()
 const router = useRouter()
 const pageResource = new PageResource()
 
-const form = reactive({
-    name: '',
-    customFields: []
-})
-
-function submitForm() {
-    console.log(form)
-}
-
-// Основное состояние компонента
 const state = reactive({
-    tableData: [], // Данные таблицы
-    loading: false, // Индикатор загрузки
+    tableData: [],
+    loading: false,
     pagination: {
         total: 0,
         currentPage: 1,
@@ -141,41 +122,66 @@ const state = reactive({
         keyword: '',
     },
     pageSizes: [10, 30, 50, 100],
-    dialogFormVisible: false, // Показывать ли форму создания
-    creating: false, // Индикатор создания
-    newPage: { // Модель новой страницы
+    dialogFormVisible: false,
+    creating: false,
+    newPage: {
         name: '',
-        title: '',
+        meta_title: '',
         slug: '',
         content: '',
-        image: '' // поле для URL загруженного изображения
+        image: '',
+        meta_description: '',
+        keywords: ''
     },
-    rules: { // Валидация формы
-        title: [{ required: true, message: 'Title is required', trigger: 'blur' }],
+    rules: {
+        meta_title: [{ required: true, message: 'Title is required', trigger: 'blur' }],
         slug: [{ required: true, message: 'Slug is required', trigger: 'blur' }],
+        name: [{ required: true, message: 'Name is required', trigger: 'blur' }]
     }
 })
 
-// Определение колонок таблицы
+const page = ref(null) // текущая редактируемая страница (или null)
+
+const createDraftDebounced = debounce(async (name, slug) => {
+  if (!name || !slug || page.value?.id || !state.dialogFormVisible) return
+  try {
+    const draft = await pageResource.createDraft({ name, slug })
+    if (!page.value?.id) {
+      page.value = draft
+      Object.assign(state.newPage, draft)
+    }
+  } catch (err) {
+    console.warn('Ошибка при создании черновика страницы:', err)
+  }
+}, 700)
+
+watch(
+  () => [state.newPage.name, state.newPage.slug],
+  ([name, slug]) => {
+    createDraftDebounced(name, slug)
+  },
+  { immediate: false }
+)
+
+// Таблица колонок и действий
 const tableColumns = [
     { prop: 'id', label: 'ID', width: '80' },
     { prop: 'name', label: 'Name' },
-    { prop: 'title', label: 'Title' },
+    { prop: 'meta_title', label: 'Title' },
     { prop: 'slug', label: 'Slug' },
-    { prop: 'updated_at', label: 'Last Updated' },
+    { prop: 'updated_at', label: 'Last Updated' }
 ]
 
-// Опции действий в таблице
 const tableOption = {
     label: t('table.actions'),
     fixed: 'right',
     item_actions: [
         { name: 'edit', type: 'primary', icon: 'EditPen' },
-        { name: 'delete', type: 'danger', icon: 'Delete' },
+        { name: 'delete', type: 'danger', icon: 'Delete' }
     ]
 }
 
-// Получение списка страниц
+// Получить список страниц
 const getList = async () => {
     state.loading = true
     try {
@@ -189,7 +195,7 @@ const getList = async () => {
     }
 }
 
-// Установка параметров фильтрации/пагинации
+// Установка параметров фильтра/пагинации
 const setParams = (key, value) => {
     if (key !== 'per_page' && key !== 'page') {
         state.params.page = 1
@@ -198,12 +204,12 @@ const setParams = (key, value) => {
     getList()
 }
 
-// Обработка действий таблицы (редактировать / удалить)
+// Обработка действий таблицы
 const tableActions = (action, row) => {
     if (action === 'edit') {
-        router.push(`/administrator/pages/edit/${row.id}`)
+        handleEdit(row.id)
     } else if (action === 'delete') {
-        ElMessageBox.confirm(`Delete page "${row.title}"?`, 'Warning', {
+        ElMessageBox.confirm(`Delete page "${row.name}"?`, 'Warning', {
             confirmButtonText: 'OK',
             cancelButtonText: 'Cancel',
             type: 'warning'
@@ -218,50 +224,117 @@ const tableActions = (action, row) => {
     }
 }
 
-// Открытие диалога создания
+// Открыть диалог создания
 const handleCreate = () => {
+    resetForm()
+    page.value = null // сброс черновика при открытии диалога создания
     state.dialogFormVisible = true
-    state.newPage = {
-        name: '',
-        title: '',
-        slug: '',
-        content: '',
-        image: ''
+}
+
+// Открыть диалог редактирования
+const handleEdit = async (id) => {
+    resetForm()
+    state.dialogFormVisible = true
+    try {
+        const res = await pageResource.show(id)
+
+        const normalizedImages = (res.images ?? []).map(img => {
+            let normalizedPath = img.path
+            if (!img.path.startsWith('/storage')) {
+                normalizedPath = '/storage/' + img.path.replace(/^public\//, '')
+            }
+
+            return {
+                id: img.id,
+                url: window.location.origin + normalizedPath,
+                title: img.title || '',
+                alt: img.alt || '',
+                sort_order: img.sort_order || 0,
+            }
+        })
+
+        console.log('Final normalizedImages:', normalizedImages)
+
+        page.value = {
+            ...res,
+            images: normalizedImages
+        }
+
+        // Обновляем модель формы с данными страницы
+        Object.assign(state.newPage, {
+            name: res.name,
+            meta_title: res.meta_title,
+            slug: res.slug,
+            content: res.content,
+            meta_description: res.meta_description,
+            keywords: res.keywords || '',
+            image: res.image || '',  // если есть отдельное поле
+        })
+    } catch (err) {
+        console.error('Error loading page images:', err)
+        ElMessage.error('Ошибка загрузки страницы')
     }
 }
 
-// Создание новой страницы через API
-const createPage = (formRef) => {
+// Сбросить форму и состояние страницы
+function resetForm() {
+    page.value = null
+    Object.assign(state.newPage, {
+        name: '',
+        meta_title: '',
+        slug: '',
+        content: '',
+        image: '',
+        meta_description: '',
+        keywords: ''
+    })
+}
+
+// Создать или обновить страницу
+const createOrUpdatePage = (formRef) => {
     if (!formRef) return
     formRef.validate(async (valid) => {
         if (!valid) return
         state.creating = true
         try {
-            await pageResource.store(state.newPage)
-            ElMessage.success(t('page.created'))
+            if (page.value?.id) {
+                await pageResource.update(page.value.id, { ...state.newPage })
+                ElMessage.success(t('page.updated'))
+            } else {
+                await pageResource.store(state.newPage)
+                ElMessage.success(t('page.created'))
+            }
             state.dialogFormVisible = false
             getList()
+            resetForm()
         } catch (err) {
             console.error(err)
+            ElMessage.error('Ошибка сохранения')
         } finally {
             state.creating = false
         }
     })
 }
 
+// Отслеживаем редактирование slug вручную и автогенерацию
+const slugEditedManually = ref(false)
+watch(() => state.newPage.slug, (newSlug) => {
+    if (newSlug !== slugify(state.newPage.name)) slugEditedManually.value = true
+    else slugEditedManually.value = false
+})
+watch(() => state.newPage.name, (newName) => {
+    if (!slugEditedManually.value) state.newPage.slug = slugify(newName)
+})
 
-// Функция генерации slug
-// Функция для slugify с транслитерацией русских букв в латиницу
+// Сгенерировать slug
 const slugify = (text) => {
     if (!text) return ''
-
     const ruToLatMap = {
-        а:'a', б:'b', в:'v', г:'g', д:'d', е:'e', ё:'yo', ж:'zh', з:'z', и:'i',
-        й:'y', к:'k', л:'l', м:'m', н:'n', о:'o', п:'p', р:'r', с:'s', т:'t',
-        у:'u', ф:'f', х:'h', ц:'c', ч:'ch', ш:'sh', щ:'shch', ъ:'', ы:'y', ь:'',
-        э:'e', ю:'yu', я:'ya'
+        а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'yo', ж: 'zh', з: 'z', и: 'i',
+        й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't',
+        у: 'u', ф: 'f', х: 'h', ц: 'c', ч: 'ch', ш: 'sh', щ: 'shch', ъ: '', ы: 'y', ь: '',
+        э: 'e', ю: 'yu', я: 'ya'
     }
-
     return text
         .toLowerCase()
         .split('')
@@ -274,24 +347,6 @@ const slugify = (text) => {
         .replace(/\s+/g, '-')
         .replace(/-+/g, '-')
 }
-
-// Состояние, чтобы отслеживать, редактировал ли пользователь slug вручную
-const slugEditedManually = ref(false)
-
-// Следим за тем, редактировал ли пользователь slug вручную
-watch(() => state.newPage.slug, (newSlug, oldSlug) => {
-    // Если slug был изменён вручную (НЕ автогенерация), помечаем это
-    if (newSlug !== slugify(state.newPage.name)) {
-        slugEditedManually.value = true
-    }
-})
-
-// Следим за изменением name и обновляем slug, если пользователь не редактировал вручную
-watch(() => state.newPage.name, (newName) => {
-    if (!slugEditedManually.value) {
-        state.newPage.slug = slugify(newName)
-    }
-})
 
 // Загрузка списка при монтировании компонента
 onMounted(getList)

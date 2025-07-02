@@ -9,21 +9,30 @@
         :on-preview="handlePreview"
         :auto-upload="true"
         :headers="headers"
+        :limit="limit"
         multiple
     >
-        <el-icon><Plus /></el-icon>
+        <!-- :show-file-list="false" :disabled="isDisabled" если потребуется скрыть загруженные картинки -->
+        <!-- Просто слот для плюса, без клика -->
+        <template #trigger>
+            <div style="cursor: pointer;">
+                <el-icon><Plus /></el-icon>
+            </div>
+        </template>
     </el-upload>
+    <el-image-viewer v-if="showPreview" :url-list="[previewUrl]" @close="showPreview = false" />
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, ElImageViewer } from 'element-plus'
 import ImageResource from '@/api/image' // твой API класс
 import { Plus } from '@element-plus/icons-vue'
 
 const props = defineProps({
     modelId: { type: [Number, String], required: true },
     modelType: { type: String, required: true },
+    initialImages: { type: Array, default: () => [] },
 })
 
 const emit = defineEmits(['update'])
@@ -32,6 +41,11 @@ const imageApi = new ImageResource()
 
 const fileList = ref([])
 const headers = {} // если нужна авторизация — добавь сюда Authorization
+
+const showPreview = ref(false)
+const previewUrl = ref('')
+
+const isDisabled = computed(() => fileList.value.length >= limit)
 
 // Загружаем уже сохранённые картинки при монтировании
 const fetchImages = async () => {
@@ -54,6 +68,12 @@ const fetchImages = async () => {
 
 // Загружаем новую картинку
 const uploadFile = async (options) => {
+
+    if (fileList.value.length >= props.limit) {
+        ElMessage.warning(`Достигнут лимит загрузки: максимум ${props.limit} изображений.`)
+        options.onError(new Error('Limit reached'))
+        return
+    }
     const formData = new FormData()
     formData.append('image', options.file)
     formData.append('imageable_type', props.modelType)
@@ -100,13 +120,48 @@ const handleRemove = async (file) => {
 }
 
 // При клике на картинку открывать в новом окне
+// const handlePreview = (file) => {
+//     window.open(file.url, '_blank')
+// }
 const handlePreview = (file) => {
-    window.open(file.url, '_blank')
+    if (file.url) {
+        previewUrl.value = file.url
+        showPreview.value = true
+    }
 }
 
-onMounted(() => {
-    fetchImages()
-})
+// При клике на плюсик — открыть первую картинку (если есть), иначе показать сообщение
+// const handleAddClick = () => {
+//     if (fileList.value.length > 0) {
+//         const firstFile = fileList.value[0]
+//         if (firstFile.url) {
+//             previewUrl.value = firstFile.url
+//             showPreview.value = true
+//         }
+//     } else {
+//         ElMessage.info('Сначала загрузите изображение')
+//     }
+// }
+
+// onMounted(() => {
+//     fetchImages()
+// })
+
+// Watch for changes in initialImages prop to update fileList
+watch(
+    () => props.initialImages,
+    (newImages) => {
+        fileList.value = (newImages || []).map(img => ({
+            name: img.title || 'image',
+            url: img.url || img.path,
+            uid: img.id,
+            status: 'done',
+            response: img
+        }))
+        console.log('Final normalizedImages:', fileList.value)
+    },
+    { immediate: true }
+)
 </script>
 
 <style scoped>

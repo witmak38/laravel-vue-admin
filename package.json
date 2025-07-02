@@ -3,6 +3,7 @@
     "scripts": {
         "build": "vite build",
         "watch": "vite build --watch",
+        "dev": "vite build -mode=development --watch",
         "lint": "eslint --ext .js,.vue resources/js",
         "prepare": "husky install"
     },

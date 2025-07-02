@@ -26,6 +26,20 @@ class PageController extends Controller
         //
     }
 
+
+    public function storeDraft(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:pages,slug',
+        ]);
+
+        $page = Page::create(array_merge($data, ['status' => 'draft']));
+
+        return response()->json($page, 201);
+    }
+
+
     /**
      * Store a newly created resource in storage.
      */
@@ -91,7 +105,19 @@ class PageController extends Controller
      */
     public function show(string $id)
     {
-        //
+       // $page = Page::with(['images', 'meta'])->find($id); еще не разработана мета
+        $page = Page::with(['images'])->find($id);
+
+        // Принудительная загрузка, если всё ещё есть проблемы
+        if ($page->images->isEmpty() && $page->images()->exists()) {
+            $page->load('images');
+        }
+
+        if (!$page) {
+            return response()->json(['message' => 'Page not found'], 404);
+        }
+
+       return response()->json($page);
     }
 
     /**
@@ -107,7 +133,43 @@ class PageController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $page = Page::find($id);
+        if (!$page) {
+            return response()->json(['message' => 'Page not found'], 404);
+        }
+
+        $validated = $request->validate([
+            'slug' => ['required', 'string', 'max:255', Rule::unique('pages')->ignore($id)],
+            'name' => ['required', 'string', 'max:255'],
+            'content' => ['nullable', 'string'],
+            'meta_title' => ['nullable', 'string', 'max:255'],
+            'meta_description' => ['nullable', 'string'],
+            // другие поля по необходимости
+        ]);
+
+        $page->update([
+            'slug' => $validated['slug'],
+            'name' => $validated['name'],
+            'content' => $validated['content'] ?? null,
+            'meta_title' => $validated['meta_title'] ?? null,
+            'meta_description' => $validated['meta_description'] ?? null,
+        ]);
+
+        // Обновление картинки, если есть
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('public/images/upload/pages');
+            $page->images()->delete(); // если хотите заменить старые изображения, или реализуйте обновление иначе
+            $page->images()->create([
+                'path' => Storage::url($path),
+                'alt' => $validated['image_alt'] ?? $page->title,
+                'title' => $validated['image_title'] ?? null,
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Page updated',
+            'page' => $page->load(['images']),
+        ]);
     }
 
     /**
