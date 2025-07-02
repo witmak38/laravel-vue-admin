@@ -17,4 +17,9 @@ class Page extends Model
         'meta_description',
         // добавь сюда все поля, которые хочешь массово заполнять
     ];
+
+    public function images()
+    {
+        return $this->morphMany(Image::class, 'imageable')->orderBy('sort_order');
+    }
 }

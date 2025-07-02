@@ -42,8 +42,8 @@ Route::namespace('Api')->group(function() {
 
         Route::apiResource('pages', \App\Http\Controllers\Api\PageController::class);
 
-        Route::post('/images', [\App\Http\Controllers\Api\GalleryController::class, 'store']);
-        Route::delete('/images/{id}', [\App\Http\Controllers\Api\GalleryController::class, 'destroy']);
+        Route::post('/images', [\App\Http\Controllers\Api\ImageController::class, 'store']);
+        Route::delete('/images/{id}', [\App\Http\Controllers\Api\ImageController::class, 'destroy']);
 
     });
 });

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Page;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class PageController extends Controller
@@ -53,6 +54,18 @@ class PageController extends Controller
             'meta_description' => $validated['meta_description'] ?? null,
         ]);
 
+        // Если есть файл картинки, сохраняем её
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('public/images/upload/pages');
+
+            // Создаем запись в images с полиморфной связью
+            $page->images()->create([
+                'path' => Storage::url($path),
+                'alt' => $validated['image_alt'] ?? $page->title,
+                'title' => $validated['image_title'] ?? null,
+            ]);
+        }
+
         // Если есть динамические мета-поля — сохраняем их
         if (!empty($validated['meta'])) {
             foreach ($validated['meta'] as $metaItem) {
@@ -67,7 +80,10 @@ class PageController extends Controller
 //            'message' => 'Page created',
 //            'page' => $page->load('meta'),
 //        ], 201);
-        return response()->json(['message' => 'Created'], 201);
+        return response()->json([
+            'message' => 'Page created',
+            'page' => $page->load(['images']),
+        ], 201);
     }
 
     /**
