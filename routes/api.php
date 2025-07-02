@@ -40,6 +40,9 @@ Route::namespace('Api')->group(function() {
 
         Route::apiResource('gallery', \App\Http\Controllers\Api\GalleryController::class);
 
+        Route::post('/images', [\App\Http\Controllers\Api\GalleryController::class, 'store']);
+        Route::delete('/images/{id}', [\App\Http\Controllers\Api\GalleryController::class, 'destroy']);
+
     });
 });
 
