@@ -12,27 +12,35 @@ class ImageController extends Controller
     // Загрузка изображения и привязка к модели
     public function store(Request $request)
     {
-        $request->validate([
-            'imageable_type' => 'required|string',
-            'imageable_id' => 'required|integer',
-            'image' => 'required|image|max:5120', // макс 5MB
-            'alt' => 'nullable|string|max:255',
-            'title' => 'nullable|string|max:255',
-        ]);
+        try {
+            $request->validate([
+                'imageable_type' => 'required|string',
+                'imageable_id' => 'required|integer',
+                'image' => 'required|image|max:5120',
+                'alt' => 'nullable|string|max:255',
+                'title' => 'nullable|string|max:255',
+            ]);
 
-        // Загружаем файл в хранилище (например, storage/app/public/images/upload)
-        $path = $request->file('image')->store('public/images/upload');
+            \Log::info('Image upload request data', $request->all());
 
-        $image = Image::create([
-            'imageable_type' => $request->imageable_type,
-            'imageable_id' => $request->imageable_id,
-            'path' => Storage::url($path),
-            'alt' => $request->alt,
-            'title' => $request->title,
-            'sort_order' => 0,
-        ]);
+            $path = $request->file('image')->store('public/images/upload');
 
-        return response()->json(['message' => 'Image uploaded', 'image' => $image], 201);
+            $image = Image::create([
+                'imageable_type' => $request->imageable_type,
+                'imageable_id' => $request->imageable_id,
+                'path' => Storage::url($path),
+                'alt' => $request->alt,
+                'title' => $request->title,
+                'sort_order' => 0,
+            ]);
+
+            return response()->json(['message' => 'Image uploaded', 'image' => $image], 201);
+
+        } catch (\Exception $e) {
+            \Log::error('Image upload error: '.$e->getMessage());
+            return response()->json(['error' => 'Server error', 'message' => $e->getMessage()], 500);
+        }
+
     }
     // Удаление изображения
     public function destroy($id)

@@ -11,10 +11,7 @@ class ImageResource extends Resource {
             url: '/' + this.uri,
             method: 'post',
             data: formData,
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            }
-        }).then(res => res.data)
+        });
     }
 }
 

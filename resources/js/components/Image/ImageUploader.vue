@@ -59,8 +59,13 @@ const uploadFile = async (options) => {
     formData.append('imageable_type', props.modelType)
     formData.append('imageable_id', props.modelId)
 
+    // ВАЖНО: Проверь что реально ушло
+    for (const [key, value] of formData.entries()) {
+        console.log(key, value)
+    }
     try {
         const response = await imageApi.upload(formData)
+        console.log('upload response:', response)
         fileList.value.push({
             name: response.image.title || 'image',
             url: response.image.path,

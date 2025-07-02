@@ -9,8 +9,7 @@ class Image extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['path', 'alt', 'title', 'sort_order'];
-
+    protected $fillable = ['imageable_type', 'imageable_id', 'path', 'alt', 'title', 'sort_order'];
     public function imageable()
     {
         return $this->morphTo();

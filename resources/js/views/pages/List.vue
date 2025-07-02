@@ -36,12 +36,10 @@
                                 <el-container>
                                     <el-aside width="200px">
                                         <el-form-item label-position="top" :label="t('page.image')">
-                                            <upload-single
-                                                v-model:file-url="newPage.image"
-                                                :limit="1"
-                                                :on-exceed="handleExceed"
-                                                class="custom-upload"
-                                                list-type="picture-card"
+                                            <ImageUploader
+                                                :model-id="123"
+                                                :model-type="`App\\\\Models\\\\Page`"
+                                                @update="images => console.log(images)"
                                             />
                                         </el-form-item>
                                     </el-aside>
@@ -111,6 +109,7 @@ import PageResource from '@/api/page'
 import UploadSingle from '@/components/images/UploadSingle.vue' // новый компонент загрузки
 import HtmlEditor from '@/components/Editor/HtmlEditor.vue' // импорт редактора
 import KeyValueFields from '@/components/Editor/KeyValueFields.vue'
+import ImageUploader from "@/components/Image/ImageUploader.vue";
 
 const activeTab = ref('main')
 
