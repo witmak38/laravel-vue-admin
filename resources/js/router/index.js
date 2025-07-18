@@ -7,6 +7,7 @@ import Layout from '@/layout/Layout.vue'
 import chartsRoutes from './modules/charts'
 import adminRoutes from './modules/admin'
 import pagesRoutes from './modules/pages'
+import staffRoutes from './modules/staff'
 import errorRoutes from './modules/error'
 
 export const constantRoutes = [
@@ -77,6 +78,7 @@ export const asyncRoutes = [
   adminRoutes,
   pagesRoutes,
   errorRoutes,
+  staffRoutes,
   { path: '/:pathMatch(.*)*', name: 'NotFound', redirect: '/404', hidden: true }
 ]
 
