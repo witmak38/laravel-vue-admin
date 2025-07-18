@@ -9,6 +9,7 @@ import adminRoutes from './modules/admin'
 import pagesRoutes from './modules/pages'
 import servicesRoutes from './modules/services'
 import citiesRoutes from './modules/cities'
+import promotionsRoutes from './modules/promotions'
 import errorRoutes from './modules/error'
 
 export const constantRoutes = [
@@ -80,6 +81,7 @@ export const asyncRoutes = [
   pagesRoutes,
   servicesRoutes,
   citiesRoutes,
+  promotionsRoutes,
   errorRoutes,
   { path: '/:pathMatch(.*)*', name: 'NotFound', redirect: '/404', hidden: true }
 ]
