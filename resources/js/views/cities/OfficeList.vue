@@ -22,29 +22,31 @@
             <div v-loading="creating" class="form-container">
                 <el-form ref="refPageForm" :model="newPage" :rules="rules" label-position="left" label-width="120px">
                     <el-tabs v-model="activeTab" tab-position="left" style="min-height: 400px;">
-                        <el-tab-pane :label="t('city.main')" name="main">
+                        <el-tab-pane :label="t('office.main')" name="main">
                             <el-container>
                                 <el-header>
-                                    <h2>{{ t('city.h2') }}</h2>
+                                    <h2>{{ t('office.h2') }}</h2>
                                 </el-header>
                                 <el-container>
+
                                     <el-container>
                                         <el-main>
-                                            <el-form-item :label="t('city.name')" prop="name">
+                                            <el-form-item :label="t('office.name')" prop="name">
                                                 <el-input v-model="newPage.name" />
                                             </el-form-item>
-
+                                            <!-- keywords, если нужны, добавь сюда -->
                                         </el-main>
                                         <el-main>
-                                            <el-form-item :label="t('city.domain')" prop="domain">
-                                                <el-input v-model="newPage.domain" />
+                                            <el-form-item :label="t('office.addres')" prop="addres">
+                                                <el-input v-model="newPage.addres" />
                                             </el-form-item>
-<!--                                            <el-form-item :label="t('page.title')" prop="meta_title">-->
-<!--                                                <el-input v-model="newPage.meta_title" />-->
-<!--                                            </el-form-item>-->
-<!--                                            <el-form-item :label="t('page.description')" prop="meta_description">-->
-<!--                                                <el-input v-model="newPage.meta_description" />-->
-<!--                                            </el-form-item>-->
+                                            <el-form-item :label="t('office.phone')" prop="phone">
+                                                <el-input v-model="newPage.phone" />
+                                            </el-form-item>
+                                            <el-form-item :label="t('office.worktime')" prop="worktime">
+                                                <el-input v-model="newPage.worktime" />
+                                            </el-form-item>
+
                                             <!-- keywords, если нужны, добавь сюда -->
                                         </el-main>
                                     </el-container>
@@ -53,20 +55,12 @@
 
                             <el-container>
                                 <el-main>
-
-                                    <el-form-item :label="t('city.content')">
+                                    <el-form-item :label="t('office.content')">
                                         <html-editor v-model:content="newPage.content" />
                                     </el-form-item>
                                 </el-main>
                             </el-container>
                         </el-tab-pane>
-<!--                        <el-tab-pane label="Дополнительные поля" name="custom">-->
-<!--                            <el-container>-->
-<!--                                <el-main>-->
-<!--                                    &lt;!&ndash; Добавь сюда, если нужны дополнительные поля &ndash;&gt;-->
-<!--                                </el-main>-->
-<!--                            </el-container>-->
-<!--                        </el-tab-pane>-->
                     </el-tabs>
                 </el-form>
 

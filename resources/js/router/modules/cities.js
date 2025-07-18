@@ -27,6 +27,12 @@ const adminRoutes = {
       name: 'CitiesList',
       meta: {title: 'list', bootstrapIcon: 'people', permissions: ['manage user']},
     },
+    {
+      path: 'offices-list',
+      component: () => import('@/views/cities/OfficeList.vue'),
+      name: 'OfficessList',
+      meta: {title: 'OfficessList', bootstrapIcon: 'people', permissions: ['manage user']},
+    },
     /** Role and permission */
     {
       path: 'roles',
